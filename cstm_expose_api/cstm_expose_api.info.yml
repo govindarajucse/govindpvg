@@ -1,0 +1,5 @@
+name: 'Custom Page JSON API'
+type: module
+description: 'Modules which expose json api for the content type called page with simple validation based on site api key'
+core: 8.x
+package: 'Custom'

@@ -1,0 +1,47 @@
+<?php
+
+/**
+ * @file
+ * cstm_expose_api.module.
+ */
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_form_FORMID_alter().
+ * Altering the System Site information by adding Site API Key field for authenticating the Page content type.
+ * While hitting the page_json/{siteapikey}/{nid}
+ * For exposing the page content type siteapikey on System site information and on URL should be same.
+ */
+function cstm_expose_api_form_system_site_information_settings_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $cstm_expose_api_config = \Drupal::config('system.site'); // Fetching the system.site configuration.
+  $form['cstm_expose_api_details'] = [
+    '#type' => 'details',
+    '#title' => t('Site API Key'),
+    '#open' => TRUE,
+  ];
+  $form['cstm_expose_api_details']['siteapikey'] = [
+    '#type' => 'textfield',
+    '#title' => t('Site API key'),
+    '#default_value' => !empty($cstm_expose_api_config->get('siteapikey')) ? $cstm_expose_api_config->get('siteapikey') : t('No API key yet'),
+    '#required' => TRUE,
+  ];
+  /** Assigning custom submit handler to save site api key */
+  $form['actions']['submit']['#submit'][]  = 'cstm_expose_api_submit_handler';
+  /** If siteapikey exists then update the button value as Update Configuration else button value as Save configuration */
+  $form['actions']['submit']['#value']  = !empty($cstm_expose_api_config->get('siteapikey')) ? t('Update Configuration') :  $form['actions']['submit']['#value'];
+  
+  return $form;
+}
+
+/**
+ * @function cstm_expose_api_submit_handler
+ * Saving the siteapikey as per requirement.
+ */
+function cstm_expose_api_submit_handler(&$form, FormStateInterface $form_state) {
+  $cstm_expose_api_config = \Drupal::configFactory()->getEditable('system.site');
+  $cstm_expose_api_config->set('siteapikey', $form_state->getValue('siteapikey'))
+    ->save();
+  drupal_set_message("Site API Key has been saved with the value of " . $form_state->getValue('siteapikey'));
+}
